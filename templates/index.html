@@ -1,0 +1,51 @@
+<html>
+  <head>
+    <title>PDF Scan Renamer</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.css">
+    <style type="text/css">
+    </style>
+    <script>
+    window.onload = function() {
+      document.querySelector(".focus").select();
+    }
+    </script>
+  </head>
+  <body>
+    <h1>Hello</h1>
+    <div id="content">
+      <div id="preview" class="container">
+        <div class="row">
+          <div class="column">
+            <object id="pdf" data="pdf/{{ source_filename }}" type="application/pdf" tabindex="-1" width="{{210 * 3.5 }}px" height="{{ 297 * 3.5 }}px"></object>
+          </div>
+          <div class="column column-50">
+            <form action="/" method="post" target="#content">
+              <input name="source" type="hidden" value="{{source_filename}}"/>
+
+              <label for="target">Directory:</label>
+              <select name="target">
+                {% for target in targets %}
+                {% if last_target == target %}
+                <option value="{{ target }}" selected="selected">{{ target }}</option>
+                {% else %}
+                <option value="{{ target }}">{{ target }}</option>
+                {% endif %}
+                {% endfor %}
+              </select>
+
+              <label for="date">Date:</label>
+              <input name="date" type="text" value="{{ date }}"></input>
+
+              <label for="description">Description:</label>
+              <input name="description" type="text" class="focus"></input>
+
+              <input type="submit"/>
+            </form>
+          </div>
+        </div>
+      </div>
+  </body>
+</html>
+
