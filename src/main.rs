@@ -164,7 +164,9 @@ struct RenameForm {
     target: String,
     date: String,
     description: String,
+    page: String,
 }
+
 async fn rename(State(state): State<AppState>, Form(input): Form<RenameForm>) -> Html<String> {
     if input.date.len() > 4 && !input.description.is_empty() {
         let source_path = Path::new(&state.input_directory)
@@ -182,14 +184,39 @@ async fn rename(State(state): State<AppState>, Form(input): Form<RenameForm>) ->
             .to_string_lossy()
             .to_string();
 
+        let first_n_pages: Option<u8> = input.page.parse::<u8>().ok();
+
         if let Ok(mut last_target) = state.last_target.lock() {
             *last_target = Some(input.target);
         }
         std::fs::create_dir_all(&target_directory).unwrap();
 
         if !std::fs::exists(&target_path).unwrap() {
-            println!("Moving {} -> {}", &source_path, &target_path);
-            std::fs::rename(source_path, target_path).unwrap();
+            if let Some(page_limit) = first_n_pages {
+                // only extract the first n pages,
+                std::process::Command::new("qpdf")
+                    .arg(&source_path)
+                    .arg("--pages")
+                    .arg(".")
+                    .arg(format!("1-{}", page_limit))
+                    .arg("--")
+                    .arg(&target_path)
+                    .status()
+                    .unwrap();
+                std::process::Command::new("qpdf")
+                    .arg(&source_path)
+                    .arg("--pages")
+                    .arg(".")
+                    .arg(format!("{}-z", page_limit + 1))
+                    .arg("--")
+                    .arg("--replace-input")
+                    .status()
+                    .unwrap();
+            } else {
+                // whole file
+                println!("Moving {} -> {}", &source_path, &target_path);
+                std::fs::rename(source_path, target_path).unwrap();
+            }
         } else {
             println!("target {} already exists!", target_path);
         }
